@@ -1,0 +1,88 @@
+# Declarative access + storage baseline for a single Linux host.
+# Rendered into idempotent Bash by `python3 -m linuxops render`.
+version: 1
+host: ops-lab-01
+
+groups:
+  - {name: devops, gid: 2001}
+  - {name: aws, gid: 2002}
+  - {name: app, gid: 2003}
+  - {name: database, gid: 2004}
+
+users:
+  - name: opsadmin
+    uid: 2101
+    primary_group: opsadmin
+    groups: [aws]
+    shell: /bin/bash
+    comment: Platform operator
+  - name: devops1
+    uid: 2102
+    primary_group: devops
+    shell: /bin/bash
+    comment: DevOps engineer
+  - name: devops2
+    uid: 2103
+    primary_group: devops
+    shell: /bin/bash
+    comment: DevOps engineer
+  - name: appsvc
+    uid: 2104
+    primary_group: app
+    shell: /usr/sbin/nologin
+    comment: Application service account
+    system_like: true
+  - name: dbadmin
+    uid: 2105
+    primary_group: database
+    groups: [app]
+    shell: /bin/bash
+    comment: Database operator
+
+directories:
+  - {path: /srv/ops, owner: opsadmin, group: devops, mode: "2770"}
+  - {path: /srv/ops/runbooks, owner: opsadmin, group: devops, mode: "2770"}
+  - {path: /srv/ops/releases, owner: devops1, group: devops, mode: "2775"}
+  - {path: /srv/app, owner: appsvc, group: app, mode: "0750"}
+  - {path: /srv/app/config, owner: appsvc, group: app, mode: "0750"}
+  - {path: /srv/db, owner: dbadmin, group: database, mode: "0700"}
+  - {path: /srv/drop, owner: opsadmin, group: devops, mode: "1777"}
+
+files:
+  - path: /srv/ops/runbooks/README.md
+    owner: opsadmin
+    group: devops
+    mode: "0640"
+    content: |
+      # Runbooks
+      Shared operational notes for the devops group.
+  - path: /srv/app/config/app.env
+    owner: appsvc
+    group: app
+    mode: "0640"
+    content: |
+      APP_ENV=lab
+      LOG_LEVEL=info
+
+sudo_rules:
+  - group: devops
+    run_as: root
+    commands:
+      - /usr/bin/systemctl restart nginx
+      - /usr/bin/systemctl status nginx
+      - /usr/bin/journalctl -u nginx
+  - group: database
+    run_as: root
+    commands:
+      - /usr/bin/systemctl restart postgresql
+
+volume:
+  label: data
+  device_hint: /dev/nvme1n1
+  size_gib: 5
+  filesystem: ext4
+  mountpoint: /data
+  owner: opsadmin
+  group: devops
+  mode: "2770"
+  options: [defaults, nofail, noatime, nodev, nosuid]

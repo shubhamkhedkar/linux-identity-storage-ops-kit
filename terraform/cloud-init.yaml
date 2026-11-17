@@ -1,0 +1,21 @@
+#cloud-config
+# Minimal bootstrap: patch, install audit tooling, keep SSH password auth off.
+package_update: true
+package_upgrade: true
+packages:
+  - git
+  - python3-pip
+  - e2fsprogs
+  - xfsprogs
+  - acl
+write_files:
+  - path: /etc/ssh/sshd_config.d/10-hardening.conf
+    permissions: "0600"
+    content: |
+      PasswordAuthentication no
+      PermitRootLogin no
+      KbdInteractiveAuthentication no
+      MaxAuthTries 3
+runcmd:
+  - [sshd, -t]
+  - [systemctl, reload, sshd]

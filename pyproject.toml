@@ -1,0 +1,23 @@
+[project]
+name = "linuxops"
+version = "1.0.0"
+description = "Declarative Linux identity, permission and storage baselines with guardrails"
+requires-python = ">=3.11"
+dependencies = ["PyYAML>=6.0.2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "ruff>=0.8", "yamllint>=1.35", "shellcheck-py>=0.10", "checkov>=3", "pip-audit>=2.7"]
+
+[project.scripts]
+linuxops = "linuxops.cli:main"
+
+[tool.ruff]
+line-length = 110
+target-version = "py311"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "S", "SIM"]
+ignore = ["S101", "S603", "S607"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]

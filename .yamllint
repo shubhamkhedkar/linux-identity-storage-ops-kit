@@ -1,0 +1,9 @@
+extends: default
+ignore: |
+  .venv/
+rules:
+  line-length: {max: 120}
+  document-start: disable
+  truthy: {check-keys: false}
+  comments: {min-spaces-from-content: 1, require-starting-space: true, ignore-shebangs: true}
+  braces: {max-spaces-inside: 1}
